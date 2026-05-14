@@ -8,19 +8,21 @@ export default function Dashboard() {
 
   useEffect(() => {
     const loadUserData = async () => {
-      const profile = await fetch('/api/auth/me').then((res) => res.json());
-      if (!profile.user) {
-        window.location.href = '/login';
-        return;
-      }
-      setUser(profile.user);
+      try {
+        const profileRes = await fetch('/api/auth/me', { credentials: 'same-origin' });
+        const profile = await profileRes.json();
+        if (!profile.user) {
+          window.location.href = '/login';
+          return;
+        }
+        setUser(profile.user);
 
-      const [projectsRes, tasksRes] = await Promise.all([
-        fetch('/api/projects'),
-        fetch('/api/tasks'),
-      ]);
+        const [projectsRes, tasksRes] = await Promise.all([
+          fetch('/api/projects', { credentials: 'same-origin' }),
+          fetch('/api/tasks', { credentials: 'same-origin' }),
+        ]);
 
-      const [projectsData, tasksData] = await Promise.all([projectsRes.json(), tasksRes.json()]);
+        const [projectsData, tasksData] = await Promise.all([projectsRes.json(), tasksRes.json()]);
 
       const tasks = tasksData.tasks || [];
       const overdue = tasks.filter((task) => task.dueDate && new Date(task.dueDate) < new Date() && task.status !== 'done').length;
@@ -43,6 +45,10 @@ export default function Dashboard() {
         done: counts.done,
       });
       setLoading(false);
+    } catch (err) {
+      console.error('Dashboard load error:', err);
+      window.location.href = '/login';
+    }
     };
     loadUserData();
   }, []);

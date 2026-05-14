@@ -13,19 +13,25 @@ export default function Signup() {
     event.preventDefault();
     setError('');
 
-    const res = await fetch('/api/auth/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password, role }),
-    });
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ name, email, password, role }),
+      });
 
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error || 'Signup failed');
-      return;
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Signup failed');
+        return;
+      }
+
+      router.push('/dashboard');
+    } catch (err) {
+      console.error('Signup error:', err);
+      setError('Unable to connect to the server. Please try again.');
     }
-
-    router.push('/dashboard');
   };
 
   return (

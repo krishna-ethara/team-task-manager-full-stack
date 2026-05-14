@@ -7,7 +7,7 @@ export default function Layout({ children }) {
   const router = useRouter();
 
   useEffect(() => {
-    fetch('/api/auth/me')
+    fetch('/api/auth/me', { credentials: 'same-origin' })
       .then((res) => res.json())
       .then((data) => {
         if (data.user) setUser(data.user);
@@ -16,7 +16,7 @@ export default function Layout({ children }) {
   }, [router.pathname]);
 
   const logout = async () => {
-    await fetch('/api/auth/logout', { method: 'POST' });
+    await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
     setUser(null);
     router.push('/login');
   };

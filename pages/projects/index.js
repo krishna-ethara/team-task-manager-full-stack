@@ -12,7 +12,7 @@ export default function ProjectsPage() {
   const router = useRouter();
 
   useEffect(() => {
-    fetch('/api/auth/me')
+    fetch('/api/auth/me', { credentials: 'same-origin' })
       .then((res) => res.json())
       .then((data) => {
         if (!data.user) {
@@ -26,7 +26,7 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     if (!user) return;
-    fetch('/api/projects')
+    fetch('/api/projects', { credentials: 'same-origin' })
       .then((res) => res.json())
       .then((data) => setProjects(data.projects || []))
       .catch(() => setProjects([]));

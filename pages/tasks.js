@@ -9,22 +9,28 @@ export default function TasksPage() {
 
   useEffect(() => {
     const load = async () => {
-      const authRes = await fetch('/api/auth/me');
-      const authData = await authRes.json();
-      if (!authData.user) {
-        router.push('/login');
-        return;
-      }
+      try {
+        const authRes = await fetch('/api/auth/me', { credentials: 'same-origin' });
+        const authData = await authRes.json();
+        if (!authData.user) {
+          router.push('/login');
+          return;
+        }
 
-      const res = await fetch('/api/tasks');
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error || 'Unable to load tasks');
+        const res = await fetch('/api/tasks', { credentials: 'same-origin' });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || 'Unable to load tasks');
+          setLoading(false);
+          return;
+        }
+        setTasks(data.tasks || []);
+      } catch (err) {
+        console.error('Tasks load error:', err);
+        setError('Unable to load tasks. Please refresh or login again.');
+      } finally {
         setLoading(false);
-        return;
       }
-      setTasks(data.tasks || []);
-      setLoading(false);
     };
     load();
   }, [router]);

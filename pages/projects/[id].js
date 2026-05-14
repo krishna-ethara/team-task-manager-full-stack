@@ -12,10 +12,16 @@ export default function ProjectDetail() {
   useEffect(() => {
     if (!id) return;
     const load = async () => {
-      const res = await fetch(`/api/projects/${id}`);
-      const data = await res.json();
-      setProject(data.project || null);
-      setTasks(data.tasks || []);
+      try {
+        const res = await fetch(`/api/projects/${id}`, { credentials: 'same-origin' });
+        const data = await res.json();
+        setProject(data.project || null);
+        setTasks(data.tasks || []);
+      } catch (err) {
+        console.error('Project detail load error:', err);
+        setProject(null);
+        setTasks([]);
+      }
     };
     load();
   }, [id]);
@@ -24,36 +30,53 @@ export default function ProjectDetail() {
     event.preventDefault();
     setError('');
 
-    const response = await fetch('/api/tasks', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: values.title,
-        description: values.description,
-        dueDate: values.dueDate,
-        projectId: id,
-        assignedEmail: values.assignedEmail,
-        priority: values.priority,
-      }),
-    });
+    try {
+      const response = await fetch('/api/tasks', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: values.title,
+          description: values.description,
+          dueDate: values.dueDate,
+          projectId: id,
+          assignedEmail: values.assignedEmail,
+          priority: values.priority,
+        }),
+      });
 
-    const result = await response.json();
-    if (!response.ok) {
-      setError(result.error || 'Unable to create task');
-      return;
+      const result = await response.json();
+      if (!response.ok) {
+        setError(result.error || 'Unable to create task');
+        return;
+      }
+
+      setTasks((prev) => [result.task, ...prev]);
+      setValues({ title: '', description: '', dueDate: '', assignedEmail: '', priority: 'medium' });
+    } catch (err) {
+      console.error('Create task error:', err);
+      setError('Unable to create task. Please try again.');
     }
-
-    setTasks((prev) => [result.task, ...prev]);
-    setValues({ title: '', description: '', dueDate: '', assignedEmail: '', priority: 'medium' });
   };
 
   const updateStatus = async (taskId, status) => {
-    await fetch(`/api/tasks/${taskId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status }),
-    });
-    setTasks((prev) => prev.map((task) => (task._id === taskId ? { ...task, status } : task)));
+    try {
+      const response = await fetch(`/api/tasks/${taskId}`, {
+        method: 'PUT',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+
+      if (!response.ok) {
+        const result = await response.json();
+        console.error('Update status failed:', result);
+        return;
+      }
+      setTasks((prev) => prev.map((task) => (task._id === taskId ? { ...task, status } : task)));
+    } catch (err) {
+      console.error('Update status error:', err);
+    }
   };
 
   if (!project) return <section className="page"><p>Loading project...</p></section>;

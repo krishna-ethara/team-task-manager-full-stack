@@ -11,19 +11,25 @@ export default function Login() {
     event.preventDefault();
     setError('');
 
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ email, password }),
+      });
 
-    const data = await res.json();
-    if (!res.ok) {
-      setError(data.error || 'Login failed');
-      return;
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error || 'Login failed');
+        return;
+      }
+
+      router.push('/dashboard');
+    } catch (err) {
+      console.error('Login error:', err);
+      setError('Unable to connect to the server. Please try again.');
     }
-
-    router.push('/dashboard');
   };
 
   return (
